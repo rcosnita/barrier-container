@@ -1,0 +1,7 @@
+[
+  {
+    "host": "uba-cassandra-0.uba-cassandra",
+    "port": 9042,
+    "type": "cassandra"
+  }
+]

@@ -1,0 +1,47 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ master ]
+    tags:
+      - '*'
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-master:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    steps:
+    - name: Checkout code base.
+      uses: actions/checkout@v2
+    - name: Build the Docker image.
+      run: docker build . --file Dockerfile --tag rcosnita/barrier-container:latest
+    - name: Build the Docker image.
+      run: docker build . --file Dockerfile --tag rcosnita/wait-container:latest
+    - name: Login to DockerHub Registry
+      run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+    - name: Push the tagged Docker image
+      run: docker push rcosnita/barrier-container:latest
+    - name: Push the tagged Docker image
+      run: docker push rcosnita/wait-container:latest
+
+  build-release:
+    runs-on: ubuntu-latest
+    if: contains(github.ref, 'refs/tags')
+    steps:
+    - name: Checkout code base.
+      uses: actions/checkout@v2
+    - name: Get current tag name
+      uses: olegtarasov/get-tag@v2
+      id: tagName
+    - name: Build the Docker image for debian stretch
+      run: docker build . --file Dockerfile --tag rcosnita/barrier-container:$GIT_TAG_NAME
+    - name: Build the Docker image.
+      run: docker build . --file Dockerfile --tag rcosnita/wait-container:$GIT_TAG_NAME
+    - name: Login to DockerHub Registry
+      run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+    - name: Push the tagged Docker image
+      run: docker push rcosnita/barrier-container:$GIT_TAG_NAME
+    - name: Push the tagged Docker image
+      run: docker push rcosnita/wait-container:$GIT_TAG_NAME
